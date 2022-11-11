@@ -4,8 +4,8 @@ import xbmc
 import xbmcgui
 import xbmcplugin
 import xbmcaddon
-from urlparse import urlparse
-from urlparse import parse_qsl
+from urllib.parse import urlparse
+from urllib.parse import parse_qsl
 from uuid import getnode as get_mac
 import swango
 
@@ -58,7 +58,7 @@ if REMOTE_DBG:
 # First run
 if not (_addon.getSetting("settings_init_done") == 'true'):
     DEFAULT_SETTING_VALUES = { 'send_errors' : 'false' }
-    for setting in DEFAULT_SETTING_VALUES.keys():
+    for setting in list(DEFAULT_SETTING_VALUES.keys()):
         val = _addon.getSetting(setting)
         if not val:
             _addon.setSetting(setting, DEFAULT_SETTING_VALUES[setting])
@@ -72,7 +72,7 @@ if not (_addon.getSetting("settings_init_done") == 'true'):
 ###############################################################################
 # log settings
 ###############################################################################
-def log(msg, level=xbmc.LOGDEBUG):
+def log(msg, level=xbmc.LOGINFO):
     if type(msg).__name__=='unicode':
         msg = msg.encode('utf-8')
     xbmc.log("[%s] %s"%(_scriptname_,msg.__str__()), level)
@@ -84,13 +84,13 @@ def logErr(msg):
     log(msg,level=xbmc.LOGERROR)
 ###############################################################################
 
-def notify(self, text, error=False):
+def notify(text, error=False):
     icon = 'DefaultIconError.png' if error else ''
     try:
-        xbmc.executebuiltin('Notification("%s","%s",5000,%s)' % (self._addon.getAddonInfo('name').encode("utf-8"), text, icon))
+        text = text.encode("utf-8") if type(text) is unicode else text
+        xbmc.executebuiltin('Notification("%s","%s",5000,%s)' % (_addon.getAddonInfo('name').encode("utf-8"), text, icon))
     except NameError as e:
-        xbmc.executebuiltin('Notification("%s","%s",5000,%s)' % (self._addon.getAddonInfo('name'), text, icon))
-
+        xbmc.executebuiltin('Notification("%s","%s",5000,%s)' % (_addon.getAddonInfo('name'), text, icon))
 
 def reload_settings():
     #_addon.openSettings()
@@ -131,35 +131,43 @@ def reload_settings():
                 _swango.generateepg(_epgdays_,_epgpath_) 
         logDbg("Playlist and EPG Updated -main.py")
 
-    except swango.ToManyDeviceError():
-        notify("To many device in SWAN Go service registered",True)
-    except swango.PairingError():
-        notify("Pairing device error",True)
-    except swango.AuthenticationError():
-        notify("Authentication error. Check Username and password in settings",True)
+    except swango.UserNotDefinedException as e:
+        notify(_addon.getLocalizedString(e.id), True)
+    except swango.UserInvalidException as e:
+          notify(_addon.getLocalizedString(e.id), True)
+    except swango.TooManyDevicesException as e:
+        notify(_addon.getLocalizedString(e.id), True)
+    except swango.PairingException() as e:
+        notify(_addon.getLocalizedString(e.id), True)
+    except swango.SwanGoException as e:
+        notify(_addon.getLocalizedString(e.id), True)
 
 
 
 def list_channels():
-    xbmc.log("Reading channels ...", level=xbmc.LOGNOTICE)
+    log("Reading channels ...")
     xbmcplugin.setPluginCategory(_handle, 'TV')
     xbmcplugin.setContent(_handle, 'videos')
-    for channel in _swango.getchannels():
-        list_item = xbmcgui.ListItem(label=channel['name'])
-        list_item.setArt({'thumb': channel['tvg-logo'],
-                        'icon': channel['tvg-logo']})
-        list_item.setInfo('video', {'title': channel['name'],
-                                    'genre': channel['name'],
-                                    'mediatype': 'video'})
-        url = '{0}?action=play&id={1}'.format(_url, channel['id_epg'])
-        logDbg("list channels: "+url)
-        list_item.setProperty('IsPlayable', 'true')
-        xbmcplugin.addDirectoryItem(_handle, url, list_item, False)
-    # Add a sort method for the virtual folder items (alphabetically, ignore articles)
-    xbmcplugin.addSortMethod(_handle, xbmcplugin.SORT_METHOD_NONE)
-    # Finish creating a virtual folder.
-    xbmcplugin.endOfDirectory(_handle)
-
+    try:
+        for channel in _swango.getchannels():
+            list_item = xbmcgui.ListItem(label=channel['name'])
+            list_item.setArt({'thumb': channel['tvg-logo'],
+                            'icon': channel['tvg-logo']})
+            list_item.setInfo('video', {'title': channel['name'],
+                                        'genre': channel['name'],
+                                        'mediatype': 'video'})
+            url = '{0}?action=play&id={1}'.format(_url, channel['id_epg'])
+            logDbg("list channels: "+url)
+            list_item.setProperty('IsPlayable', 'true')
+            xbmcplugin.addDirectoryItem(_handle, url, list_item, False)
+        # Add a sort method for the virtual folder items (alphabetically, ignore articles)
+        xbmcplugin.addSortMethod(_handle, xbmcplugin.SORT_METHOD_NONE)
+        # Finish creating a virtual folder.
+        xbmcplugin.endOfDirectory(_handle)
+    except swango.StreamNotResolvedException as e:
+        notify(e.detail,True)
+        logErr(e.detail)
+    return
 
 def play_video(id):
     """
@@ -196,7 +204,7 @@ def router(paramstring):
     """
     # Parse a URL-encoded paramstring to the dictionary of
     # {<parameter>: <value>} elements
-    log('Executing SWANGO plugin ...', level=xbmc.LOGNOTICE)
+    log('Executing SWANGO plugin ...')
     params = dict(parse_qsl(paramstring))
     logDbg(paramstring)
     # Check the parameters passed to the plugin

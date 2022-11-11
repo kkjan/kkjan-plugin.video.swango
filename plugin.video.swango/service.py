@@ -26,7 +26,7 @@ class swangoMonitor(xbmc.Monitor):
         self.log('service destroyed')
 
     ###############################################################################
-    def log(self, msg, level=xbmc.LOGDEBUG):
+    def log(self, msg, level=xbmc.LOGINFO):
         if type(msg).__name__=='unicode':
             msg = msg.encode('utf-8')
         xbmc.log("[%s] %s"%(self._scriptname,msg.__str__()), level)
@@ -41,6 +41,7 @@ class swangoMonitor(xbmc.Monitor):
     def notify(self, text, error=False):
         icon = 'DefaultIconError.png' if error else ''
         try:
+            text = text.encode("utf-8") if type(text) is unicode else text
             xbmc.executebuiltin('Notification("%s","%s",5000,%s)' % (self._addon.getAddonInfo('name').encode("utf-8"), text, icon))
         except NameError as e:
             xbmc.executebuiltin('Notification("%s","%s",5000,%s)' % (self._addon.getAddonInfo('name'), text, icon))
@@ -49,11 +50,11 @@ class swangoMonitor(xbmc.Monitor):
         self._addon = xbmcaddon.Addon()  # refresh for updated settings!
         if not self.abortRequested():
             try:
-                res = self.update(True)
-                if res != -1:
-                    self.notify("Playlist and EPG XML actualised. Setting aplied",False)
-            except swango.SwangoException as e:
-                self.notify("Unexpected Error", True)
+                res = self.update()
+                if res == 1:
+                    self.notify(self._addon.getLocalizedString(30701),False)
+            except swango.SwanGoException as e:
+                self.notify(self._addon.getLocalizedString(e.id), True)
 
     def schedule_next(self, seconds):
         dt = datetime.datetime.now() + datetime.timedelta(seconds=seconds)
@@ -76,25 +77,29 @@ class swangoMonitor(xbmc.Monitor):
             _epgpath_ = self._addon.getSetting("epgpath")
             _playlistpath_ = self._addon.getSetting("playlistpath")
             _swango_=swango.SWANGO(_username_, _password_,_device_token_,_device_type_code_,_device_model_,_device_name_,_device_serial_number_)
-            _swango_.device_token=_device_token_
             if _swango_.logdevicestartup() ==True:
                 if _swango_.generateplaylist(_playlistpath_) and _swango_.generateepg(_epgdays_,_epgpath_):
                     result=1
             else:
-                token=_token=_swango_.pairingdevice()
+                _swango_.device_token=_swango_.pairingdevice()
                 if _swango_.logdevicestartup() ==True:
-                    self._addon.setSetting("device_token",token)
+                    self._addon.setSetting("device_token",_swango_.device_token)
                     if _swango_.generateplaylist(_playlistpath_) and _swango_.generateepg(_epgdays_,_epgpath_):
                         result=1  
-        except swango.ToManyDeviceError():
-            self.notify("To many device in SWAN Go service registered",True)
-        except swango.PairingError():
-            self.notify("Pairing device error",True)
-        except swango.AuthenticationError():
-            self.notify("Authentication error. Check Username and password in settings",True)
+        except swango.UserNotDefinedException as e:
+            self.notify(self._addon.getLocalizedString(e.id), True)
+        except swango.UserInvalidException as e:
+            self.notify(self._addon.getLocalizedString(e.id), True)
+        except swango.TooManyDevicesException as e:
+            self.notify(self._addon.getLocalizedString(e.id), True)
+        except swango.PairingException() as e:
+            self.notify(self._addon.getLocalizedString(e.id), True)
+        except swango.SwanGoException as e:
+            self.notify(self._addon.getLocalizedString(e.id), True)
 
         self.log('Update playlist and epg ended')
-        self.notify("Playlist and EPG xml successfully updated -service",False)
+        if result==1:
+            self.notify(self._addon.getLocalizedString(30702),False)
         return result
 
     def tick(self):
@@ -106,7 +111,7 @@ class swangoMonitor(xbmc.Monitor):
                 self.schedule_next(60)
                 self.log('Can''t update, no internet connection')
                 pass
-            except swango.SwangoException as e:
+            except swango.SwanGoException as e:
                 self.notify("Unexpected error", True)
 
     def save(self):

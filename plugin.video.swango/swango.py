@@ -4,8 +4,8 @@
 """Wrapper pre SWAN Go
 """
 
-import httplib
-import urllib
+import http.client
+import urllib.request, urllib.parse, urllib.error
 import json
 import requests
 import certifi
@@ -14,6 +14,7 @@ import time
 from xml.dom import minidom 
 import os  
 import codecs
+
 __author__ = "janschml"
 __license__ = "MIT"
 __version__ = "0.1.0"
@@ -25,27 +26,34 @@ _COMMON_HEADERS = { "User-Agent" :	"okhttp/3.12.1",
 
 
 
-class SwangoException(BaseException):
-    def __init__(self, detail={}):
+class SwanGoException(Exception):
+    def __init__(self, id):
+        self.id = id
+
+
+class UserNotDefinedException(SwanGoException):
+    def __init__(self):
+        self.id = 30601
+
+class UserInvalidException(SwanGoException):
+    def __init__(self):
+        self.id = 30602
+
+class TooManyDevicesException(SwanGoException):
+    def __init__(self,detail):
+        self.id = 30603
+        self.detail = detail
+       
+
+class StreamNotResolvedException(SwanGoException):
+    def __init__(self, detail):
+        self.id = 30604
         self.detail = detail
 
-class ChannelIsNotBroadcastingError(BaseException):
-    pass
-
-class PairingError(BaseException):
-    def __init__(self, detail={}):
+class PairingException(SwanGoException):
+    def __init__(self, detail):
+        self.id = 30605
         self.detail = detail
-    pass
-
-class ToManyDeviceError(BaseException):
-    def __init__(self, detail={}):
-        self.detail = detail
-    pass
-
-class AuthenticationError(BaseException):
-    def __init__(self, detail={}):
-        self.detail = detail
-    pass
 
 class SWANGO:
 
@@ -78,7 +86,7 @@ class SWANGO:
     def pairingdevice(self):
         result=-1
         if not self.username or not self.password:
-            raise AuthenticationError()
+            raise UserNotDefinedException()
         headers = _COMMON_HEADERS
         headers["Content-Type"] = "application/json;charset=utf-8"
         data = {  'login' : self.username,
@@ -88,13 +96,12 @@ class SWANGO:
                     #Pairing device
         req = requests.post('https://backoffice.swan.4net.tv/api/device/pairDeviceByLogin', json=data,headers=headers)
         j = req.json()
-        print(j)
-        
+
         if "validation_errors" in j['message'] and j['success']==False:
-            raise ToManyDeviceError({'error' : j['message']['validation_errors'][0]})
+            raise TooManyDevicesException(j['message']['validation_errors'][0])
         elif j['success']==False:
-            print(j['message'])
-            raise AuthenticationError({'error' : str(j['message'])})
+            print((j['message']))
+            raise UserInvalidException()
         elif j['success']==True:
             self.device_token=j['token']
             data = {'device_token' : self.device_token,
@@ -106,7 +113,7 @@ class SWANGO:
             req = requests.post('https://backoffice.swan.4net.tv/api/device/completeDevicePairing', json=data,headers=headers)
             return self.device_token
         else:
-            raise PairingError({'error' : j['message']})
+            raise PairingException(j['message'])
 
         
      
@@ -134,17 +141,20 @@ class SWANGO:
         data = {'device_token' : self.device_token}
         req = requests.post('https://backoffice.swan.4net.tv/api/device/getSources', json=data, headers=headers)
         j = req.json()
-
-        for channel in j['channels']:
-            ch ={ 'name' : channel['name'],
-                'id_epg' : channel['id_epg'],
-                'tvg-name' : channel['name'].replace(" ","_"),
-                'tvg-logo' : "https://epg.swan.4net.tv/files/channel_logos/"+str(channel['id'])+".png",
-                'content_source' :  channel['content_sources'][0]['stream_profile_urls']['adaptive'] }
-            self.channels.append(ch)
-            
         
-        return self.channels
+        if  j['success']==False:
+            raise StreamNotResolvedException(j['message'])
+        else:
+            for channel in j['channels']:
+                ch ={ 'name' : channel['name'],
+                    'id_epg' : channel['id_epg'],
+                    'tvg-name' : channel['name'].replace(" ","_"),
+                    'tvg-logo' : "https://epg.swan.4net.tv/files/channel_logos/"+str(channel['id'])+".png",
+                    'content_source' :  channel['content_sources'][0]['stream_profile_urls']['adaptive'] }
+                self.channels.append(ch)
+                return self.channels    
+        
+        
 
     def generateplaylist(self, playlistpath):
         channels = self.getchannels()

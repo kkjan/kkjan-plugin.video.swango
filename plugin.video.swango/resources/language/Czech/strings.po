@@ -1,0 +1,83 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: sk\n"
+
+msgctxt "#30001"
+msgid "username"
+msgstr "Uživatelské jméno"
+
+msgctxt "#30002"
+msgid "password"
+msgstr "Heslo"
+
+msgctxt "#30601"
+msgid "User name or password is not defined"
+msgstr "Přístupové údaje nejsou nastaveny!"
+
+msgctxt "#30602"
+msgid "User name or password is not valid"
+msgstr "Neplatné přihlášení"
+
+msgctxt "#30603"
+msgid "Too many active devices"
+msgstr "Příliš mnoho zařízení pro tento účet"
+
+msgctxt "#30604"
+msgid "Internet connection error"
+msgstr "Internetové spojení není dostupné"
+
+msgctxt "#30605"
+msgid "Pairing error"
+msgstr "Chyba párovaní zařízení"
+
+msgctxt "#30701"
+msgid "Setting successfully applied. Playlist and EPG XML actualised."
+msgstr "Nastavenia boli úspešne aplikované. Playlist a EPG XML boli úspešne aktualizované."
+
+msgctxt "#30702"
+msgid "Playlist and EPG XML successfully updated"
+msgstr "Playlist a EPG XML boli úspešne aktualizované."
+
+
+msgctxt "#30030"
+msgid "device_type_code"
+msgstr "Kód typu zařízení"
+
+msgctxt "#30031"
+msgid "device_model"
+msgstr "Model zařízení"
+
+msgctxt "#30032"
+msgid "device_name"
+msgstr "Název zařízení"
+
+msgctxt "#30033"
+msgid "device_serial_number"
+msgstr "Sériové číslo zariadenia"
+
+msgctxt "#30034"
+msgid "device_token"
+msgstr "Token  zařízení"
+
+msgctxt "#30035"
+msgid "playlistpath"
+msgstr "Cesta k souboru playlistu"
+
+msgctxt "#30036"
+msgid "epgdays"
+msgstr "Počet dnú pro generovaní EPG xml souboru"
+
+msgctxt "#30037"
+msgid "epgpath"
+msgstr "Cesta k EPG XML souboru"
+
+msgctxt "#32001"
+msgid "Main"
+msgstr "Hlavné"
+
+msgctxt "#32002"
+msgid "Playlist and EPG"
+msgstr "Playlist a EPG"
+
+

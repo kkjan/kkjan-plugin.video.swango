@@ -1,0 +1,79 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: en\n"
+
+msgctxt "#30001"
+msgid "username"
+msgstr "Username"
+
+msgctxt "#30002"
+msgid "password"
+msgstr "Password"
+
+
+msgctxt "#30601"
+msgid "User name or password is not defined"
+msgstr "User name or password is not defined"
+
+msgctxt "#30602"
+msgid "User name or password is not valid"
+msgstr "User name or password is not valid"
+
+msgctxt "#30603"
+msgid "Too many active devices"
+msgstr "Too many active devices"
+
+msgctxt "#30604"
+msgid "Internet connection error"
+msgstr "Internet connection error"
+
+msgctxt "#30605"
+msgid "Pairing error"
+msgstr "Pairing error"
+
+msgctxt "#30701"
+msgid "Setting successfully applied. Playlist and EPG XML actualised."
+msgstr "Setting successfully applied. Playlist and EPG XML actualised."
+
+msgctxt "#30702"
+msgid "Playlist and EPG XML successfully updated"
+msgstr "Playlist and EPG xml successfully updated"
+
+
+
+msgctxt "#30030"
+msgid "device_type_code"
+msgstr "Device type code"
+
+msgctxt "#30031"
+msgid "device_model"
+msgstr "Device model"
+
+msgctxt "#30032"
+msgid "device_name"
+msgstr "Device name"
+
+msgctxt "#30033"
+msgid "device_serial_number"
+msgstr "Device serial number"
+
+msgctxt "#30034"
+msgid "device_token"
+msgstr "Device token"
+
+msgctxt "#30035"
+msgid "playlistpath"
+msgstr "Playlist file"
+
+msgctxt "#30036"
+msgid "epgdays"
+msgstr "Days for EPG XML"
+
+msgctxt "#30037"
+msgid "epgpath"
+msgstr "EPG XML file"
+
+
+
+
