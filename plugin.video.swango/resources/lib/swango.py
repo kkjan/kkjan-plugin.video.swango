@@ -3,21 +3,15 @@
 
 """Wrapper pre SWAN Go
 """
-
-import http.client
 import json
 import requests
 import datetime
 import time
 from xml.dom import minidom 
-import os  
 import codecs
-import logger
+from resources.lib.logger import *
+import os
 
-__author__ = "janschml"
-__license__ = "MIT"
-__version__ = "0.1.0"
-__email__ = "ja.schm@gmail.com"
 
 
 _COMMON_HEADERS = { "User-Agent" :	"okhttp/3.12.1",
@@ -57,7 +51,7 @@ class PairingException(SwanGoException):
 
 class SWANGO:
 
-    def __init__(self,username =None,password=None,device_token=None, device_type_code = None, model=None,name=None, serial_number=None, datapath=None):
+    def __init__(self,username =None,password=None,device_token=None, device_type_code = None, model=None,name=None, serial_number=None, datapath=None,_epg_lang_=None):
         self.username = username
         self.password = password
         self._live_channels = {}
@@ -69,9 +63,9 @@ class SWANGO:
         self.model = model
         self.name = name
         self.serial_number = serial_number
-        self.epgids=[]
         self.channels=[]
         self.datapath = datapath
+        self.lang = _epg_lang_
 
     def logdevicestartup(self):
         headers = _COMMON_HEADERS
@@ -133,7 +127,6 @@ class SWANGO:
                 return ch['content_source']
     
     def get_swango_stream(self, ch_id,start,end):
-        self.updatebroadcast()
         headers = _COMMON_HEADERS
         headers["Content-Type"] = "application/json;charset=utf-8"
         data = {'device_token' : self.device_token,
@@ -146,52 +139,29 @@ class SWANGO:
 
     def getchannels(self):
         ch =list()
-        headers = _COMMON_HEADERS
-        headers["Content-Type"] = "application/json;charset=utf-8"
-        data = {'device_token' : self.device_token}
-        req = requests.post('https://backoffice.swan.4net.tv/api/device/getSources', json=data, headers=headers)
-        j = req.json()
-        
-        if  j['success']==False:
-            raise StreamNotResolvedException(j['message'])
-        else:
-            for channel in j['channels']:
-                ch ={ 'name' : channel['name'],
-                    'id_epg' : channel['id_epg'],
-                    'tvg-name' : channel['name'].replace(" ","_"),
-                    'tvg-logo' : "https://epg.swan.4net.tv/files/channel_logos/"+str(channel['id'])+".png",
-                    'content_source' :  channel['content_sources'][0]['stream_profile_urls']['adaptive'] }
-                self.channels.append(ch)
+        p=os.path.join(self.datapath,'sources-channel.json')
+        with open(p, 'r') as json_file:
+            j = json.load(json_file)
+            json_file.close()  
+
+        for channel in j['channels']:
+            ch ={ 'name' : channel['name'],
+                'id_epg' : channel['id_epg'],
+                'tvg-name' : channel['name'].replace(" ","_"),
+                'tvg-logo' : "https://epg.swan.4net.tv/files/channel_logos/"+str(channel['id'])+".png",
+                'content_source' :  channel['content_sources'][0]['stream_profile_urls']['adaptive'] }
+            self.channels.append(ch)
         return self.channels    
-        
-        
-
-    def generateplaylist(self, playlistpath):
-        channels = self.getchannels()
-        with codecs.open(playlistpath , 'w',encoding='utf-8') as f:
-            f.write("#EXTM3U\n")
-            for channel in channels:
-                # for tvheadend
-                # strtmp="#EXTINF:-1 tvg-id=\""+str(channel['id_epg'])+"\" tvg-logo=\"https://epg.swan.4net.tv/files/channel_logos/"+str(channel['id'])+".png\" channel=\""+channel['name']+" tvg-name=\""+channel['name']+"\","+channel['name']+"\npipe:///storage/.kodi/addons/tools.ffmpeg-tools/bin/ffmpeg -fflags +genpts -i \""+channel['content_sources'][0]['stream_profile_urls']['adaptive']+"\" -vcodec copy -acodec copy -f mpegts  -mpegts_service_type digital_tv -metadata service_provider="+str(channel['id'])+" -metadata service_name= pipe:1"
-
-                # for IPTV Simple client
-                strtmp="#EXTINF:-1 tvg-id=\""+str(channel['id_epg'])+"\" tvg-name=\""+channel['tvg-name']+"\" tvg-logo=\""+channel['tvg-logo']+"\", "+channel['name']+"\n"+channel['content_source']
-        
-                f.write("%s\n" % strtmp)
-        return 1
 
 
     def getswangotags(self):
         subcats =[]
         sc=list
-        headers = _COMMON_HEADERS
-        headers["Content-Type"] = "application/json;charset=utf-8"
-        req = requests.get('https://epg.swan.4net.tv/export/tag?lng=slk', headers=headers)
-        j = req.json()
-        logger.logDbg('getswangotags '+req.url)
-        if  j['error']==True:
-            raise StreamNotResolvedException(j['message'])
-        else:
+        p=os.path.join(self.datapath,'tags.json')
+        with open(p, 'r') as json_file:
+            j = json.load(json_file)
+            json_file.close()  
+
             for scid in j['tags'].keys():
                 sc ={ 'name' : j['tags'][scid]['name'],
                         'id_tag' : scid,
@@ -203,9 +173,21 @@ class SWANGO:
                 subcats.append(sc)
         return subcats  
 
-    def getcontent(self,id,episode):
+    def getcontent(self,id,episode,q=None):
         subcats=list()
-        p=self.datapath+'broadcast-channel.json'
+        p=os.path.join(self.datapath,'broadcast-channel.json')
+        with open(p, 'r') as json_file:
+            bec = json.load(json_file)
+            json_file.close()   
+       # epg_xml=minidom.parse(epgpath)
+    
+        fromdat=datetime.datetime.now()-datetime.timedelta(days=7)
+        todat=datetime.datetime.now()
+        fromdt=int((fromdat-datetime.datetime(1970,1,1)).total_seconds())
+        todt=int((todat-datetime.datetime(1970,1,1)).total_seconds())
+        epg_special='special_epg_from['+str(fromdt)+']'
+
+        p=os.path.join(self.datapath,'broadcast-channel.json')
         with open(p, 'r') as json_file:
             bec = json.load(json_file)
             json_file.close()   
@@ -215,15 +197,11 @@ class SWANGO:
         for ch in broad_ch_epg:
                 epg_id=epg_id+str(ch["id_epg"])+','
         epg_id=epg_id[:-1]
-        fromdat=datetime.datetime.now()-datetime.timedelta(days=7)
-        todat=datetime.datetime.now()
-        fromdt=int((fromdat-datetime.datetime(1970,1,1)).total_seconds())
-        todt=int((todat-datetime.datetime(1970,1,1)).total_seconds())
-        epg_special='special_epg_from['+str(fromdt)+']'
 
         if not episode:
             
             data={
+                'lng':self.lang,
                 'epg_id':epg_id,
                 'tag_id':id,
                 'from':fromdt,
@@ -231,9 +209,22 @@ class SWANGO:
                 'limit':100,
                 epg_special:epg_id
             }
-            url='https://epg.swan.4net.tv/search?v=3.1&lng=slk&tagged_only=0'
+            url='https://epg.swan.4net.tv/search?v=3.1&tagged_only=0'
+        if q:
+            data={
+                'lng':self.lang,
+                'epg_id':epg_id,
+                'from':fromdt,
+                'to':todt,
+                'limit':100,
+                epg_special:epg_id,
+                'q':q
+            }
+            url='https://epg.swan.4net.tv/search?v=3.1&tagged_only=0'  
+
         if episode:
             data={
+                'lng':self.lang,
                 'id_broadcast':id,
                 'epg_id':epg_id,
                 'tag_id':id,
@@ -242,12 +233,12 @@ class SWANGO:
                 'limit':100,
                 epg_special:epg_id
             }
-            url='https://epg.swan.4net.tv/export/program?&lng=slk&&loadFullDetail=1&limit_similar=30&loadFullDetail=1'
+            url='https://epg.swan.4net.tv/export/program?&&loadFullDetail=1&limit_similar=30&loadFullDetail=1'
         headers = _COMMON_HEADERS
         headers["Content-Type"] = "application/json;charset=utf-8"
         req = requests.get(url, params=data, headers=headers)        
         j = req.json()
-        logger.logDbg('getcontent '+req.url)
+        logDbg('getcontent '+req.url)
         if  j['error']==True:
             raise StreamNotResolvedException(j['message'])
         else:
@@ -258,7 +249,7 @@ class SWANGO:
             for br in dat:
                 ch_id=list(filter(lambda x:x["id_epg"]==br['epg_id'],broad_ch_epg))
                 isSeries=768 in br['tag_ids'] #768-id forSeries tag
-                logger.logDbg('isSeries'+ str(isSeries))
+                logDbg('isSeries'+ str(isSeries))
                 sc ={ 'name' : br['name']+" - "+ch_id[0]['name']+": "+br['start'],
                         'ch_id' : ch_id[0]['id'],
                         'br_id':br['id'],
@@ -290,6 +281,20 @@ class SWANGO:
                 subcats.append(sc)
         return subcats  
 
+
+
+    def generateplaylist(self, playlistpath):
+        channels = self.getchannels()
+        with codecs.open(playlistpath , 'w',encoding='utf-8') as f:
+            f.write("#EXTM3U\n")
+            for channel in channels:
+                # for tvheadend
+                # strtmp="#EXTINF:-1 tvg-id=\""+str(channel['id_epg'])+"\" tvg-logo=\"https://epg.swan.4net.tv/files/channel_logos/"+str(channel['id'])+".png\" channel=\""+channel['name']+" tvg-name=\""+channel['name']+"\","+channel['name']+"\npipe:///storage/.kodi/addons/tools.ffmpeg-tools/bin/ffmpeg -fflags +genpts -i \""+channel['content_sources'][0]['stream_profile_urls']['adaptive']+"\" -vcodec copy -acodec copy -f mpegts  -mpegts_service_type digital_tv -metadata service_provider="+str(channel['id'])+" -metadata service_name= pipe:1"
+
+                # for IPTV Simple client
+                strtmp="#EXTINF:-1 tvg-id=\""+str(channel['id_epg'])+"\" tvg-name=\""+channel['tvg-name']+"\" tvg-logo=\""+channel['tvg-logo']+"\", "+channel['name']+"\n"+channel['content_source']
+                f.write("%s\n" % strtmp)
+
     def generateepg(self,days,epgpath):
         guide = minidom.Document() 
         tv = guide.createElement('tv') 
@@ -311,32 +316,41 @@ class SWANGO:
             channel.appendChild(icon)
 
             tv.appendChild(channel)
-          
-        epg=""
-        for epgid in self.epgids:
-            epg+=str(epgid)+","
-        epg=epg[:-1]     
+
         today=datetime.datetime.now().replace(hour=23,minute=0,second=0,microsecond=0)
         #today.replace(tzinfo='timezone.utc').astimezone(tz=None)
         fromdat=today-datetime.timedelta(days=1)
         todat=today+datetime.timedelta(days=days)
         fromdt=int((fromdat-datetime.datetime(1970,1,1)).total_seconds())
         todt=int((todat-datetime.datetime(1970,1,1)).total_seconds())
-        
+
+        p=os.path.join(self.datapath,'broadcast-channel.json')
+        with open(p, 'r') as json_file:
+            bec = json.load(json_file)
+            json_file.close()   
+       # epg_xml=minidom.parse(epgpath)
+        epg_id=''
+        broad_ch_epg=bec["channel_groups"][0]['channels']
+        for ch in broad_ch_epg:
+                epg_id=epg_id+str(ch["id_epg"])+','
+        epg_id=epg_id[:-1]
+
         headers = _COMMON_HEADERS
         headers["Content-Type"] = "application/json;charset=utf-8"
-        data={"epg_id":epg,
+        data={'lng':self.lang,
+            "epg_id":epg_id,
             "from":str(fromdt),
-            "to":str(todt),
-            "lng" :"slk",
+            "to":str(todt)
              }
 
         req = requests.get('https://epg.swan.4net.tv/export/broadcast', params=data, headers=headers)
+        logDbg('URL: '+req.url)
         j = req.json()
 
-        #with open('epg.json') as json_file:
-        #    j = json.load(json_file)
-
+        with open(os.path.join(self.datapath,'broadcast-epg.json'), 'w') as json_file:
+            json.dump(j, json_file)
+            json_file.close()
+  
         tz=time.timezone
         m, s = divmod(tz, 60)
         h, m = divmod(m, 60)
@@ -401,18 +415,39 @@ class SWANGO:
 
         with codecs.open(epgpath, "wb") as f: 
             f.write(xml_str)  
-        return 1
 
     def updatebroadcast(self):
-        fromdat=datetime.datetime.now()-datetime.timedelta(days=7)
-
-        fromdt=int((fromdat-datetime.datetime(1970,1,1)).total_seconds())
 
         headers = _COMMON_HEADERS
         headers["Content-Type"] = "application/json;charset=utf-8"
         data = {'device_token' : self.device_token}
         req = requests.post('https://backoffice.swan.4net.tv/api/device/getAllChannelGroups', json=data, headers=headers)
         j = req.json()
-        with open(self.datapath+'broadcast-channel.json', 'w') as json_file:
+
+        with open(os.path.join(self.datapath,'broadcast-channel.json'), 'w') as json_file:
             json.dump(j, json_file)
             json_file.close()
+
+
+        data = {'device_token' : self.device_token}
+        req = requests.post('https://backoffice.swan.4net.tv/api/device/getSources', json=data, headers=headers)
+        j = req.json()
+        
+        if  j['success']==False:
+            raise StreamNotResolvedException(j['message'])
+        else:
+            with open(os.path.join(self.datapath,'sources-channel.json'), 'w') as json_file:
+                json.dump(j, json_file)
+                json_file.close()
+
+  
+        data={"lng" :self.lang}
+        req = requests.get('https://epg.swan.4net.tv/export/tag?',params=data, headers=headers)
+        j = req.json()
+        logDbg('getswangotags '+req.url)
+        if  j['error']==True:
+            raise StreamNotResolvedException(j['message'])
+        else:
+            with open(os.path.join(self.datapath,'tags.json'), 'w') as json_file:
+                json.dump(j, json_file)
+                json_file.close()

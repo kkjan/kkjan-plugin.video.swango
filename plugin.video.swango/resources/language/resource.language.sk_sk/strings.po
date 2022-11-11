@@ -33,8 +33,8 @@ msgstr "Chyba párovania zariadenia"
 
 
 msgctxt "#30701"
-msgid "Setting successfully applied. Playlist and EPG XML actualised."
-msgstr "Nastavenia boli úspešne aplikované. Playlist a EPG XML boli úspešne aktualizované."
+msgid "Setting successfully applied."
+msgstr "Nastavenia boli úspešne aplikované."
 
 msgctxt "#30702"
 msgid "Playlist and EPG XML successfully updated"
@@ -62,16 +62,56 @@ msgid "device_token"
 msgstr "Token  zariadenia"
 
 msgctxt "#30035"
-msgid "playlistpath"
-msgstr "Cesta k súboru playlistu"
+msgid "generate_playlist"
+msgstr "Generovať playlist"
 
 msgctxt "#30036"
+msgid "playlistpath"
+msgstr "Adresár súboru playlistu"
+
+msgctxt "#30037"
+msgid "playlistfile"
+msgstr "Názov súboru playlistu"
+
+msgctxt "#30038"
+msgid "generate_epg"
+msgstr "Generovať EPG xml súbor"
+
+msgctxt "#30039"
 msgid "epgdays"
 msgstr "Počet dní pre generovanie EPG xml súboru"
 
-msgctxt "#30037"
+msgctxt "#30040"
 msgid "epgpath"
-msgstr "Cesta k EPG XML súboru"
+msgstr "Adresár súboru EPG XML súboru"
+
+msgctxt "#30041"
+msgid "epgfile"
+msgstr "Názov súboru EPG XML"
+
+msgctxt "#30042"
+msgid "lang"
+msgstr "Jazyk pre EPG a playlist"
+
+msgctxt "#30060"
+msgid "live"
+msgstr "Živé vysielanie"
+
+msgctxt "#30061"
+msgid "archive"
+msgstr "Archív"
+
+msgctxt "#30062"
+msgid "search"
+msgstr "Hladať"
+
+msgctxt "#30063"
+msgid "usr_pwd_empty"
+msgstr "Treba nastaviť meno a heslo pre SwanGO v nastaveniach pluginu. Taktiež je možné nastaviť už existujúci token zariadenia. Ak sa nenastaví, plugin sa pokúsi spárovať so službou SwanGO"
+
+msgctxt "#30064"
+msgid "tokenempty"
+msgstr "Device token nie je nastavený"
 
 msgctxt "#32001"
 msgid "Main"
@@ -80,5 +120,3 @@ msgstr "Hlavné"
 msgctxt "#32002"
 msgid "Playlist and EPG"
 msgstr "Playlist a EPG"
-
-

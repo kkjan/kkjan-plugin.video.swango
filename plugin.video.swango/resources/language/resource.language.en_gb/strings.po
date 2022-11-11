@@ -33,8 +33,8 @@ msgid "Pairing error"
 msgstr "Pairing error"
 
 msgctxt "#30701"
-msgid "Setting successfully applied. Playlist and EPG XML actualised."
-msgstr "Setting successfully applied. Playlist and EPG XML actualised."
+msgid "Setting successfully applied."
+msgstr "Setting successfully applied."
 
 msgctxt "#30702"
 msgid "Playlist and EPG XML successfully updated"
@@ -63,17 +63,62 @@ msgid "device_token"
 msgstr "Device token"
 
 msgctxt "#30035"
-msgid "playlistpath"
-msgstr "Playlist file"
+msgid "generate_playlist"
+msgstr "Generate playlist"
 
 msgctxt "#30036"
+msgid "playlistpath"
+msgstr "Playlist directory"
+
+msgctxt "#30037"
+msgid "playlistfile"
+msgstr "Playlist directory"
+
+msgctxt "#30038"
+msgid "generate_epg"
+msgstr "Generate EPG XML"
+
+msgctxt "#30039"
 msgid "epgdays"
 msgstr "Days for EPG XML"
 
-msgctxt "#30037"
+msgctxt "#30040"
 msgid "epgpath"
+msgstr "EPG XML Directory"
+
+msgctxt "#30041"
+msgid "epgfile"
 msgstr "EPG XML file"
 
+msgctxt "#30042"
+msgid "lang"
+msgstr "Language for EPG and playlist"
 
+msgctxt "#30060"
+msgid "live"
+msgstr "Live stream"
 
+msgctxt "#30061"
+msgid "archive"
+msgstr "SwanGO achive"
+
+msgctxt "#30062"
+msgid "search"
+msgstr "Search"
+
+msgctxt "#30063"
+msgid "usr_pwd_empty"
+msgstr "You need to set a name and password for SwanGO in the plugin settings. It is also possible to set an existing device token. If not set, the plugin will try to pair with SwanGO"
+
+msgctxt "#30064"
+msgid "tokenempty"
+msgstr "Device token missing"
+
+msgctxt "#32001"
+msgid "Main"
+msgstr "Hlavné"
+
+msgctxt "#32002"
+msgid "Playlist and EPG"
+msgstr "Playlist a EPG"
 

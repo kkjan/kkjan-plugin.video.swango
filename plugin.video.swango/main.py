@@ -8,8 +8,8 @@ import xbmcvfs
 from urllib.parse import urlparse
 from urllib.parse import parse_qsl
 from uuid import getnode as get_mac
-import swango
-import logger
+import resources.lib.swango as swango
+import resources.lib.logger as logger
 
 params = False
 _addon = xbmcaddon.Addon('plugin.video.swango')
@@ -18,56 +18,7 @@ _scriptname_=_addon.getAddonInfo('name')
 _url = sys.argv[0]
 # Get the plugin handle as an integer number.
 _handle = int(sys.argv[1])
-
-
-_first_error_ = (_addon.getSetting('first_error') == "true")
-_send_errors_ = (_addon.getSetting('send_errors') == "true")
-_username_ = _addon.getSetting("username")
-_password_ = _addon.getSetting("password")
-_device_token_ = _addon.getSetting("device_token")
-_device_type_code_ = _addon.getSetting("device_type_code")
-_device_model_ = _addon.getSetting("device_model")
-_device_name_ = _addon.getSetting("device_name")
-_device_serial_number_ = _addon.getSetting("device_serial_number")
-_epgdays_ = int(_addon.getSetting("epgdays"))
-_epgpath_ = _addon.getSetting("epgpath")
-_playlistpath_ = _addon.getSetting("playlistpath")
-__datapath__ = xbmcvfs.translatePath( _addon.getAddonInfo('profile'))
-
-###############################################################################
-#     Remote debbuging
-###############################################################################
-REMOTE_DBG = False
-# append pydev remote debugger
-if REMOTE_DBG:
-    try:
-        sys.path.append(os.environ['HOME']+r'/.xbmc/system/python/Lib/pysrc')
-        sys.path.append(os.environ['APPDATA']+r'/Kodi/system/python/Lib/pysrc')
-        import pydevd
-        pydevd.settrace('libreelec.local', port=5678, stdoutToServer=True, stderrToServer=True)
-    except ImportError:
-        sys.stderr.write("Error: Could not load pysrc!")
-        sys.exit(1)
-
-
-###############################################################################
-
-
-##############################################################################
-#     First running
-###############################################################################
-
-# First run
-if not (_addon.getSetting("settings_init_done") == 'true'):
-    DEFAULT_SETTING_VALUES = { 'send_errors' : 'false' }
-    for setting in list(DEFAULT_SETTING_VALUES.keys()):
-        val = _addon.getSetting(setting)
-        if not val:
-            _addon.setSetting(setting, DEFAULT_SETTING_VALUES[setting])
-    _addon.setSetting("settings_init_done", "true")
-
-###############################################################################
-
+logger.logDbg('Handle: '+sys.argv[1])   
 
 def notify(text, error=False):
     icon = 'DefaultIconError.png' if error else ''
@@ -77,7 +28,24 @@ def notify(text, error=False):
     except NameError as e:
         xbmc.executebuiltin('Notification("%s","%s",5000,%s)' % (_addon.getAddonInfo('name'), text, icon))
 
-logger.logDbg('Handle: '+sys.argv[1])
+_username_ = _addon.getSetting("username")
+_password_ = _addon.getSetting("password")
+_device_token_ = _addon.getSetting("device_token")
+_device_type_code_ = _addon.getSetting("device_type_code")
+_device_model_ = _addon.getSetting("device_model")
+_device_name_ = _addon.getSetting("device_name")
+_device_serial_number_ = _addon.getSetting("device_serial_number")
+_epg_lang_ = _addon.getSetting("epg_lang")
+_datapath_ = xbmcvfs.translatePath( _addon.getAddonInfo('profile'))
+
+if not _username_ or not _password_:
+    not_usr_pwd_notice = xbmcgui.Dialog()
+    not_usr_pwd_notice.ok(_addon.getLocalizedString(30601),_addon.getLocalizedString(30063))
+    _addon.openSettings()
+
+if not _device_token_:
+    notify(_addon.getLocalizedString(30064),True)
+    _addon.openSettings()
 
 
 
@@ -91,7 +59,7 @@ def list_channels():
             list_item.setInfo('video', {'title': channel['name'],
                                         'genre': channel['name'],
                                         'mediatype': 'video'})
-            url = '{0}?action=play&id={1}'.format(_url, channel['id_epg'])
+            url = '{0}?action=playlive&id={1}'.format(_url, channel['id_epg'])
             logger.logDbg("list channels: "+url)
             logger.logDbg('tvg-logo: '+channel['tvg-logo'])
             list_item.setProperty('IsPlayable', 'true')
@@ -102,18 +70,18 @@ def list_channels():
         xbmcplugin.endOfDirectory(_handle)
     except swango.StreamNotResolvedException as e:
         notify(e.detail,True)
-        logErr(e.detail)
+        logger.logErr(e.detail)
     return
 
 def list_categories():
     logger.log("Settings categories ..."+str(_handle))
 
-    list_item = xbmcgui.ListItem(label='Live')
+    list_item = xbmcgui.ListItem(label=_addon.getLocalizedString(30060))
     list_item.setArt({'icon': 'DefaultFolder.png'});
     url = '{0}?action=live'.format(_url)
     xbmcplugin.addDirectoryItem(_handle, url, list_item, True)
     logger.logDbg("list channels: "+url)
-    list_item = xbmcgui.ListItem(label='SwanGo')
+    list_item = xbmcgui.ListItem(label=_addon.getLocalizedString(30061))
     list_item.setArt({'icon': 'DefaultFolder.png'});
     url = '{0}?action=swango'.format(_url)
     logger.logDbg("list categories: "+url)
@@ -127,6 +95,13 @@ def list_categories():
 def list_subcategories():
     logger.log("Reading subcategories ..."+str(_handle))
     try:
+        list_item = xbmcgui.ListItem(label=_addon.getLocalizedString(30062))
+        list_item.setArt({'icon': "DefaultAddonsSearch.png",
+                                'thumb': "DefaultAddonsSearch.png"})
+        url = '{0}?action=search'.format(_url)
+        list_item.setProperty('IsPlayable', 'true')
+        xbmcplugin.addDirectoryItem(_handle, url, list_item, True)
+
         for subcat in _swango.getswangotags():
             list_item = xbmcgui.ListItem(label=subcat['name'])
             list_item.setArt({'icon': "DefaultVideo.png",
@@ -143,16 +118,16 @@ def list_subcategories():
         xbmcplugin.endOfDirectory(_handle)
     except swango.StreamNotResolvedException as e:
         notify(e.detail,True)
-        logErr(e.detail)
+        logger.logErr(e.detail)
     return
 
-def list_content(id,isSeries=False):
+def list_content(id,isSeries=False,q=None):
     logger.log("Reading content ..."+str(_handle))
     try:
         if isSeries==True:
-            cont= _swango.getcontent(id,True)
+            cont= _swango.getcontent(id,True,q)
         else:
-            cont= _swango.getcontent(id,False)
+            cont= _swango.getcontent(id,False,q)
         for subcat in cont:
             list_item = xbmcgui.ListItem(label=subcat['name'])
             list_item.setArt({'icon': subcat['img'],
@@ -186,8 +161,16 @@ def list_content(id,isSeries=False):
         xbmcplugin.endOfDirectory(_handle)
     except swango.StreamNotResolvedException as e:
         notify(e.detail,True)
-        logErr(e.detail)
+        logger.logErr(e.detail)
     return
+
+def list_search():
+    keyboard = xbmc.Keyboard('', _addon.getLocalizedString(30062))
+    keyboard.doModal()
+    if (keyboard.isConfirmed()):
+        txt = keyboard.getText()
+        list_content(0,False,txt)
+        
 
 def play_live(id):
     """
@@ -265,6 +248,8 @@ def router(paramstring):
             list_subcategories()
         elif params['action']=='getepisodes':
             list_content(params['id'],True)
+        elif params['action']=='search':
+            list_search()
         elif params['action']=='tagcontent':
             list_content(params['id'],False)
             # If the provided paramstring does not contain a supported action
@@ -284,6 +269,6 @@ if __name__ == '__main__':
     # Call the router function and pass the plugin call parameters to it.
     # We use string slicing to trim the leading '?' from the plugin call paramstring
 
-    _swango=swango.SWANGO(_username_, _password_,_device_token_,_device_type_code_,_device_model_,_device_name_,_device_serial_number_,__datapath__)
+    _swango=swango.SWANGO(_username_, _password_,_device_token_,_device_type_code_,_device_model_,_device_name_,_device_serial_number_,_datapath_,_epg_lang_)
     router(sys.argv[2][1:])
 
