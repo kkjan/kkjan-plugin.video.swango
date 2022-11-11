@@ -1,8 +1,13 @@
+<<<<<<< HEAD
 <?xml version="1.0" encoding="UTF-8"?>
-<addon id="plugin.video.swango" name="SWAN Go" version="0.1.3" provider-name="janschml">
+<addon id="plugin.video.swango" name="SWAN Go" version="0.1.4" provider-name="janschml">
+=======
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<addon id="plugin.video.swango" name="SWAN Go" version="0.1.0" provider-name="janschml">
+>>>>>>> parent of 13a7385 (v0.1.1)
   <requires>
-    <import addon="xbmc.python" version="3.0.0"/>
-    <import addon="script.module.requests" version="2.18.4"/>
+    <import addon="xbmc.python" version="2.1.0"/>
+    <import addon="script.module.requests" version="2.7.0"/>
     <import addon="script.module.dateutil" version="2.8.1"/>
   </requires>
   <extension point="xbmc.python.pluginsource" library="main.py">
@@ -15,6 +20,10 @@
     <description lang="sk">Plugin na generovanie playlistu a EPG XML súboru pre IPTV Simple client pre službu SWAN Go</description>
     <description lang="cz">Plugin pro generování playlistu a EPG XML súboru pro IPTV Simple client pro službu SWAN Go</description>
     <platform>all</platform>
+<<<<<<< HEAD
+    <news>v0.1.4  (2021-10-18)
+      - [FIX] utc to local time in archive
+      - Added plot info in live stream</news>
     <news>v0.1.3  (2021-10-15)
       - [FIX] live play
       - When settings for empty user/password, show addon settings
@@ -25,10 +34,9 @@
       - added SwanGO archive capatibilities</news>
     <news>v0.1.1  (2021-1-26)
       - upgrade for Kodi 19 (python 3)</news>
+=======
+>>>>>>> parent of 13a7385 (v0.1.1)
     <news>v0.1.0  (2021-1-26)
       - initial release</news>
-      <assets>
-        <icon>icon.png</icon>
-      </assets>
   </extension>
 </addon>

@@ -92,7 +92,7 @@ msgctxt "#30042"
 msgid "lang"
 msgstr "Jazyk pro EPG a playlist"
 
-msgctxt "#30061"
+msgctxt "#30060"
 msgid "live"
 msgstr "Živé vysílání"
 
@@ -111,6 +111,10 @@ msgstr "Treba nastaviť meno a heslo pro SwanGO v nastaveních pluginu. Taktéž
 msgctxt "#30064"
 msgid "tokenempty"
 msgstr "Device token není nastaven"
+
+msgctxt "#30065"
+msgid "next:"
+msgstr "Nasleduje:"
 
 msgctxt "#32001"
 msgid "Main"

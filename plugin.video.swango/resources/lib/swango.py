@@ -4,6 +4,7 @@
 """Wrapper pre SWAN Go
 """
 import json
+from sys import platform
 import requests
 import datetime
 import time
@@ -144,12 +145,54 @@ class SWANGO:
             j = json.load(json_file)
             json_file.close()  
 
+        p=os.path.join(self.datapath,'broadcast-epg.json')
+        with open(p, 'r') as json_file:
+            epg = json.load(json_file)
+            json_file.close() 
+        now=time.time()
+        #datetimeformat=xbmc.getRegion('dateshort')+" "+xbmc.getRegion('time')
+        datetimeformat=xbmc.getRegion('dateshort')+" "+"%H:%M"
         for channel in j['channels']:
+            ch_ids=list(filter(lambda x:x["epg_id"]==channel['id_epg'],epg['broadcasts']))
+            ch_ids1=list(filter(lambda x:x["endTimestamp"]>now,ch_ids))
+            ch_ids_curr=list(filter(lambda x:x["startTimestamp"]<now,ch_ids1))
+            ch_ids_next=list(filter(lambda x:x["startTimestamp"]==ch_ids_curr[0]['endTimestamp'],ch_ids1))
+            logDbg(repr(ch_ids_curr))
             ch ={ 'name' : channel['name'],
+                'prg_name': ch_ids_curr[0]['name'],
+                'next_prg_name': ch_ids_next[0]['name'],
+                'next_prg_start': datetime.datetime.fromtimestamp(int(ch_ids_next[0]['startTimestamp'])).strftime(datetimeformat),
+                'next_prg_end': datetime.datetime.fromtimestamp(int(ch_ids_next[0]['endTimestamp'])).strftime(datetimeformat),
                 'id_epg' : channel['id_epg'],
                 'tvg-name' : channel['name'].replace(" ","_"),
+                'start' : datetime.datetime.fromtimestamp(int(ch_ids_curr[0]['startTimestamp'])).strftime(datetimeformat),
+                'end' : datetime.datetime.fromtimestamp(int(ch_ids_curr[0]['endTimestamp'])).strftime(datetimeformat),
                 'tvg-logo' : "https://epg.swan.4net.tv/files/channel_logos/"+str(channel['id'])+".png",
                 'content_source' :  channel['content_sources'][0]['stream_profile_urls']['adaptive'] }
+            plot=''
+            if 'episode_name' in ch_ids_curr[0]:
+                plot+=ch_ids_curr[0]['episode_name']+'[CR]'
+            elif 'description' in ch_ids_curr[0]:
+                plot += ch_ids_curr[0]['description']
+            ch['plot']=plot
+
+            if 'thumbnail' in ch_ids_curr[0]: 
+                ch['img'] = "https://epg.swan.4net.tv/files/program_photos/_300/"+str(ch_ids_curr[0]['thumbnail']['extension'])
+            elif 'photos' in ch_ids_curr[0]:
+                ch['img'] = "https://epg.swan.4net.tv/files/program_photos/_300/"+str(ch_ids_curr[0]['photos'][0]['extension'])
+            else:
+                ch['img'] = 'DefaultVideo.png'
+
+            if'genre' in ch_ids_curr[0]:
+                ch['genre']=ch_ids_curr[0]['genre']
+            else:
+                ch['genre']=''
+
+            if'year' in ch_ids_curr[0]:
+                ch['year']=ch_ids_curr[0]['year']
+            else:
+                ch['year']=None
+
             self.channels.append(ch)
         return self.channels    
 
@@ -246,11 +289,12 @@ class SWANGO:
                 dat=j['broadcasts']
             else:
                 dat=j['related_broadcasts']
+            datetimeformat=xbmc.getRegion('dateshort')+" "+xbmc.getRegion('time')
             for br in dat:
                 ch_id=list(filter(lambda x:x["id_epg"]==br['epg_id'],broad_ch_epg))
                 isSeries=768 in br['tag_ids'] #768-id forSeries tag
                 logDbg('isSeries'+ str(isSeries))
-                sc ={ 'name' : br['name']+" - "+ch_id[0]['name']+": "+br['start'],
+                sc ={ 'name' : br['name']+" - "+ch_id[0]['name']+": "+ datetime.datetime.fromtimestamp(int(br['startTimestamp'])).strftime(datetimeformat),
                         'ch_id' : ch_id[0]['id'],
                         'br_id':br['id'],
                         'start':br['startTimestamp'],

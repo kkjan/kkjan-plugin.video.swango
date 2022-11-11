@@ -113,6 +113,10 @@ msgctxt "#30064"
 msgid "tokenempty"
 msgstr "Device token nie je nastavený"
 
+msgctxt "#30065"
+msgid "next:"
+msgstr "Nasleduje:"
+
 msgctxt "#32001"
 msgid "Main"
 msgstr "Hlavné"
