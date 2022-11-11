@@ -64,7 +64,6 @@ class swangoMonitor(xbmc.Monitor):
     def update(self):
         result =-1
         try:
-            
             self.log('Update playlist and epg started')
             _username_ = self._addon.getSetting("username")
             _password_ = self._addon.getSetting("password")
@@ -81,7 +80,10 @@ class swangoMonitor(xbmc.Monitor):
                 if _swango_.generateplaylist(_playlistpath_) and _swango_.generateepg(_epgdays_,_epgpath_):
                     result=1
             else:
+                self.logDbg('paitring device')
                 _swango_.device_token=_swango_.pairingdevice()
+                self.logDbg("Device token: " +_swango_.device_token)
+                self._addon.setSetting("device_token",_swango_.device_token)
                 if _swango_.logdevicestartup() ==True:
                     self._addon.setSetting("device_token",_swango_.device_token)
                     if _swango_.generateplaylist(_playlistpath_) and _swango_.generateepg(_epgdays_,_epgpath_):
@@ -92,7 +94,7 @@ class swangoMonitor(xbmc.Monitor):
             self.notify(self._addon.getLocalizedString(e.id), True)
         except swango.TooManyDevicesException as e:
             self.notify(self._addon.getLocalizedString(e.id), True)
-        except swango.PairingException() as e:
+        except swango.PairingException as e:
             self.notify(self._addon.getLocalizedString(e.id), True)
         except swango.SwanGoException as e:
             self.notify(self._addon.getLocalizedString(e.id), True)

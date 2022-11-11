@@ -5,15 +5,14 @@
 """
 
 import http.client
-import urllib.request, urllib.parse, urllib.error
 import json
 import requests
-import certifi
 import datetime
 import time
 from xml.dom import minidom 
 import os  
 import codecs
+import logger
 
 __author__ = "janschml"
 __license__ = "MIT"
@@ -23,6 +22,7 @@ __email__ = "ja.schm@gmail.com"
 
 _COMMON_HEADERS = { "User-Agent" :	"okhttp/3.12.1",
                     "Connection": "Keep-Alive"}
+
 
 
 
@@ -57,7 +57,7 @@ class PairingException(SwanGoException):
 
 class SWANGO:
 
-    def __init__(self,username =None,password=None,device_token=None, device_type_code = None, model=None,name=None, serial_number=None):
+    def __init__(self,username =None,password=None,device_token=None, device_type_code = None, model=None,name=None, serial_number=None, datapath=None):
         self.username = username
         self.password = password
         self._live_channels = {}
@@ -71,6 +71,7 @@ class SWANGO:
         self.serial_number = serial_number
         self.epgids=[]
         self.channels=[]
+        self.datapath = datapath
 
     def logdevicestartup(self):
         headers = _COMMON_HEADERS
@@ -96,24 +97,21 @@ class SWANGO:
                     #Pairing device
         req = requests.post('https://backoffice.swan.4net.tv/api/device/pairDeviceByLogin', json=data,headers=headers)
         j = req.json()
-
-        if "validation_errors" in j['message'] and j['success']==False:
-            raise TooManyDevicesException(j['message']['validation_errors'][0])
-        elif j['success']==False:
-            print((j['message']))
-            raise UserInvalidException()
-        elif j['success']==True:
+        if j['success']==True:
             self.device_token=j['token']
             data = {'device_token' : self.device_token,
                     'device_type_code' : self.device_type_code,
                     'model' : self.model,
                     'name' : self.name,
                     'serial_number' : self.serial_number }
-                        
             req = requests.post('https://backoffice.swan.4net.tv/api/device/completeDevicePairing', json=data,headers=headers)
             return self.device_token
+        elif "validation_errors" in j['message'] and j['success']==False:
+            raise TooManyDevicesException(j['message']['validation_errors'][0])
+        elif j['success']==False:
+            raise UserInvalidException()
         else:
-            raise PairingException(j['message'])
+            raise PairingException('Detail: '+j['message'])
 
         
      
@@ -128,11 +126,23 @@ class SWANGO:
         return self._device_settings
 
         
-    def get_stream(self, ch_id):
+    def get_live_stream(self, ch_id):
         channels=self.getchannels()
         for ch in  channels:
             if ch_id == ch['id_epg']:
                 return ch['content_source']
+    
+    def get_swango_stream(self, ch_id,start,end):
+        self.updatebroadcast()
+        headers = _COMMON_HEADERS
+        headers["Content-Type"] = "application/json;charset=utf-8"
+        data = {'device_token' : self.device_token,
+                 'channel_id':ch_id,
+                 'start':start,
+                 'end':end}
+        req = requests.get('https://backoffice.swan.4net.tv/contentd/api/device/getContent',data, headers=headers)
+        j = req.json()
+        return j['stream_uri']
 
     def getchannels(self):
         ch =list()
@@ -152,7 +162,7 @@ class SWANGO:
                     'tvg-logo' : "https://epg.swan.4net.tv/files/channel_logos/"+str(channel['id'])+".png",
                     'content_source' :  channel['content_sources'][0]['stream_profile_urls']['adaptive'] }
                 self.channels.append(ch)
-                return self.channels    
+        return self.channels    
         
         
 
@@ -169,6 +179,116 @@ class SWANGO:
         
                 f.write("%s\n" % strtmp)
         return 1
+
+
+    def getswangotags(self):
+        subcats =[]
+        sc=list
+        headers = _COMMON_HEADERS
+        headers["Content-Type"] = "application/json;charset=utf-8"
+        req = requests.get('https://epg.swan.4net.tv/export/tag?lng=slk', headers=headers)
+        j = req.json()
+        logger.logDbg('getswangotags '+req.url)
+        if  j['error']==True:
+            raise StreamNotResolvedException(j['message'])
+        else:
+            for scid in j['tags'].keys():
+                sc ={ 'name' : j['tags'][scid]['name'],
+                        'id_tag' : scid,
+                      'type' : j['tags'][scid]['type']}
+                if 'photo' in j['tags'][scid]:
+                   sc['img'] = "https://epg.swan.4net.tv/files/program_photos/_300/"+str(j['tags'][scid]['photo']['extension'])
+                else:
+                     sc['img'] = 'DefaultVideoIcon.png'
+                subcats.append(sc)
+        return subcats  
+
+    def getcontent(self,id,episode):
+        subcats=list()
+        p=self.datapath+'broadcast-channel.json'
+        with open(p, 'r') as json_file:
+            bec = json.load(json_file)
+            json_file.close()   
+       # epg_xml=minidom.parse(epgpath)
+        epg_id=''
+        broad_ch_epg=bec["channel_groups"][0]['channels']
+        for ch in broad_ch_epg:
+                epg_id=epg_id+str(ch["id_epg"])+','
+        epg_id=epg_id[:-1]
+        fromdat=datetime.datetime.now()-datetime.timedelta(days=7)
+        todat=datetime.datetime.now()
+        fromdt=int((fromdat-datetime.datetime(1970,1,1)).total_seconds())
+        todt=int((todat-datetime.datetime(1970,1,1)).total_seconds())
+        epg_special='special_epg_from['+str(fromdt)+']'
+
+        if not episode:
+            
+            data={
+                'epg_id':epg_id,
+                'tag_id':id,
+                'from':fromdt,
+                'to':todt,
+                'limit':100,
+                epg_special:epg_id
+            }
+            url='https://epg.swan.4net.tv/search?v=3.1&lng=slk&tagged_only=0'
+        if episode:
+            data={
+                'id_broadcast':id,
+                'epg_id':epg_id,
+                'tag_id':id,
+                'from':fromdt,
+                'to':todt,
+                'limit':100,
+                epg_special:epg_id
+            }
+            url='https://epg.swan.4net.tv/export/program?&lng=slk&&loadFullDetail=1&limit_similar=30&loadFullDetail=1'
+        headers = _COMMON_HEADERS
+        headers["Content-Type"] = "application/json;charset=utf-8"
+        req = requests.get(url, params=data, headers=headers)        
+        j = req.json()
+        logger.logDbg('getcontent '+req.url)
+        if  j['error']==True:
+            raise StreamNotResolvedException(j['message'])
+        else:
+            if not episode:
+                dat=j['broadcasts']
+            else:
+                dat=j['related_broadcasts']
+            for br in dat:
+                ch_id=list(filter(lambda x:x["id_epg"]==br['epg_id'],broad_ch_epg))
+                isSeries=768 in br['tag_ids'] #768-id forSeries tag
+                logger.logDbg('isSeries'+ str(isSeries))
+                sc ={ 'name' : br['name']+" - "+ch_id[0]['name']+": "+br['start'],
+                        'ch_id' : ch_id[0]['id'],
+                        'br_id':br['id'],
+                        'start':br['startTimestamp'],
+                        'end':br['endTimestamp'],
+                        'date':br['start']}
+                if 'thumbnail' in br: 
+                    sc['img'] = "https://epg.swan.4net.tv/files/program_photos/_300/"+str(br['thumbnail']['extension'])
+                elif 'photos' in br:
+                    sc['img'] = "https://epg.swan.4net.tv/files/program_photos/_300/"+str(br['photos'][0]['extension'])
+                else:
+                    sc['img'] = 'DefaultVideo.png'
+                if'description' in br:
+                    sc['info']=br['description']
+                else:
+                    sc['info']=br['name']
+                if'genre' in br:
+                    sc['genre']=br['genre']
+                else:
+                    sc['genre']=''
+                if'year' in br:
+                    sc['year']=br['year']
+                else:
+                    sc['year']=None
+                if isSeries:
+                    sc['series']=1
+                else:
+                    sc['series']=0
+                subcats.append(sc)
+        return subcats  
 
     def generateepg(self,days,epgpath):
         guide = minidom.Document() 
@@ -282,3 +402,17 @@ class SWANGO:
         with codecs.open(epgpath, "wb") as f: 
             f.write(xml_str)  
         return 1
+
+    def updatebroadcast(self):
+        fromdat=datetime.datetime.now()-datetime.timedelta(days=7)
+
+        fromdt=int((fromdat-datetime.datetime(1970,1,1)).total_seconds())
+
+        headers = _COMMON_HEADERS
+        headers["Content-Type"] = "application/json;charset=utf-8"
+        data = {'device_token' : self.device_token}
+        req = requests.post('https://backoffice.swan.4net.tv/api/device/getAllChannelGroups', json=data, headers=headers)
+        j = req.json()
+        with open(self.datapath+'broadcast-channel.json', 'w') as json_file:
+            json.dump(j, json_file)
+            json_file.close()
