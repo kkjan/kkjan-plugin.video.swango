@@ -37,9 +37,12 @@ msgid "Setting successfully applied."
 msgstr "Nastavenia boli úspešne aplikované."
 
 msgctxt "#30702"
-msgid "Playlist and EPG XML successfully updated"
-msgstr "Playlist a EPG XML boli úspešne aktualizované."
+msgid "Channels and EPG XML successfully updated"
+msgstr "Kanály ls a EPG XML boli úspešne aktualizované."
 
+msgctxt "#30703"
+msgid "Channels and EPG updating started"
+msgstr "Začala aktualizácia kanálov a EPG"
 
 msgctxt "#30030"
 msgid "device_type_code"
@@ -78,44 +81,105 @@ msgid "generate_epg"
 msgstr "Generovať EPG xml súbor"
 
 msgctxt "#30039"
-msgid "epgdays"
-msgstr "Počet dní pre generovanie EPG xml súboru"
+msgid "epgdays.past"
+msgstr "Minulé dni pre generovanie EPG xml súboru"
 
 msgctxt "#30040"
+msgid "epgdays.future"
+msgstr "Budúce dní pre generovanie EPG xml súboru"
+
+msgctxt "#30041"
 msgid "epgpath"
 msgstr "Adresár súboru EPG XML súboru"
 
-msgctxt "#30041"
+msgctxt "#30042"
 msgid "epgfile"
 msgstr "Názov súboru EPG XML"
 
-msgctxt "#30042"
+msgctxt "#30043"
 msgid "lang"
 msgstr "Jazyk pre EPG a playlist"
 
+msgctxt "#30050"
+msgid "update_interval"
+msgstr "Interval aktualizácie"
+
+msgctxt "#30051"
+msgid "update_now"
+msgstr "Aktualizovať teraz"
+
+msgctxt "#30052"
+msgid "IPTVMinstall"
+msgstr "Inštalácia IPTV manažéra"
+
+msgctxt "#30053"
+msgid "IPTVMenable"
+msgstr "Povolnie integrácie IPTV manažéra"
+
+msgctxt "#30054"
+msgid "IPTVMsettings"
+msgstr "Nastavenie IPTV manažéra…"
+
+msgctxt "#30055"
+msgid "IPTVSimplerestart"
+msgstr "Reštartovanie IPTV Simple po aktualizácií kanálov a EPG"
+
+msgctxt "#30056"
+msgid "IPTVSimplesettings"
+msgstr "Nastavenie IPTV Simple"
+
 msgctxt "#30060"
-msgid "live"
-msgstr "Živé vysielanie"
+msgid "live_tv"
+msgstr "Živé vysielanie TV"
 
 msgctxt "#30061"
+msgid "live_radio"
+msgstr "Živé vysielanie rádiá"
+
+msgctxt "#30062"
 msgid "archive"
 msgstr "Archív"
 
-msgctxt "#30062"
+msgctxt "#30063"
 msgid "search"
 msgstr "Hladať"
 
-msgctxt "#30063"
+msgctxt "#30064"
 msgid "usr_pwd_empty"
 msgstr "Treba nastaviť meno a heslo pre SwanGO v nastaveniach pluginu. Taktiež je možné nastaviť už existujúci token zariadenia. Ak sa nenastaví, plugin sa pokúsi spárovať so službou SwanGO"
 
-msgctxt "#30064"
+msgctxt "#30065"
 msgid "tokenempty"
 msgstr "Device token nie je nastavený"
 
-msgctxt "#30065"
+msgctxt "#30066"
 msgid "next:"
 msgstr "Nasleduje:"
+
+
+msgctxt "#30067"
+msgid "SWAN Go: Updating Channels and EPG"
+msgstr "SWAN Go: Aktualizácia kanálov a EPG"
+
+msgctxt "#30068"
+msgid "Download data from SWAN GO"
+msgstr "Sťahovanie dát"
+
+msgctxt "#30069"
+msgid "Generate playlist"
+msgstr "Generovanie playlistu"
+
+msgctxt "#30070"
+msgid "Generate EPG"
+msgstr "Generovanie EPG"
+
+msgctxt "#30071"
+msgid "Update IPTV simple"
+msgstr "Aktualizácia IPTV simple"
+
+msgctxt "#30072"
+msgid "Finished"
+msgstr "Koniec aktualziácie kanálov a EPG"
 
 msgctxt "#32001"
 msgid "Main"
@@ -124,3 +188,11 @@ msgstr "Hlavné"
 msgctxt "#32002"
 msgid "Playlist and EPG"
 msgstr "Playlist a EPG"
+
+msgctxt "#32003"
+msgid "Update options"
+msgstr "Aktualizácia"
+
+msgctxt "#32004"
+msgid "Integration"
+msgstr "Integrácia"

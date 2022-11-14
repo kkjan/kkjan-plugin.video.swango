@@ -3,7 +3,7 @@ import xbmcaddon
 
 
 _addon = xbmcaddon.Addon('plugin.video.swango')
-_scriptname_=_addon.getAddonInfo('name')
+_scriptname_=_addon.getAddonInfo('id')
 
 ###############################################################################
 # log settings

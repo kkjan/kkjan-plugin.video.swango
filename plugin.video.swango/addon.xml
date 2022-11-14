@@ -1,26 +1,27 @@
-<<<<<<< HEAD
 <?xml version="1.0" encoding="UTF-8"?>
-<addon id="plugin.video.swango" name="SWAN Go" version="0.1.4" provider-name="janschml">
-=======
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.swango" name="SWAN Go" version="0.1.0" provider-name="janschml">
->>>>>>> parent of 13a7385 (v0.1.1)
+<addon id="plugin.video.swango" name="SWAN Go" version="0.1.5~alpha4" provider-name="janschml">
   <requires>
-    <import addon="xbmc.python" version="2.1.0"/>
-    <import addon="script.module.requests" version="2.7.0"/>
-    <import addon="script.module.dateutil" version="2.8.1"/>
+    <import addon="xbmc.python" version="3.0.0" />
+    <import addon="script.module.requests" version="2.18.4" />
+    <import addon="script.module.dateutil" version="2.8.1" />
+    <import addon="script.module.routing" version="0.2.3" />
+    <import addon="script.common.plugin.cache" version="2.6.3"/>
+    <import addon="script.module.web-pdb" version="1.5.6"/>
   </requires>
   <extension point="xbmc.python.pluginsource" library="main.py">
-		<provides>video</provides>
- </extension>
-  <extension point="xbmc.service" library="service.py"/>
+    <provides>video</provides>
+  </extension>
+  <extension point="xbmc.service" library="service.py" />
+  <extension point="xbmc.python.library" library="libraryfunctions.py" />
   <extension point="xbmc.addon.metadata">
     <summary>SWAN Go</summary>
     <description>Plugin to generate playlist and EPG XML file for Simple client from SWAN Go service</description>
     <description lang="sk">Plugin na generovanie playlistu a EPG XML súboru pre IPTV Simple client pre službu SWAN Go</description>
     <description lang="cz">Plugin pro generování playlistu a EPG XML súboru pro IPTV Simple client pro službu SWAN Go</description>
     <platform>all</platform>
-<<<<<<< HEAD
+    <news>v0.1.5~alpha (2022-11-20)
+      - Added IPTV Manager support
+      - Use routing module</news>
     <news>v0.1.4  (2021-10-18)
       - [FIX] utc to local time in archive
       - Added plot info in live stream</news>
@@ -34,9 +35,10 @@
       - added SwanGO archive capatibilities</news>
     <news>v0.1.1  (2021-1-26)
       - upgrade for Kodi 19 (python 3)</news>
-=======
->>>>>>> parent of 13a7385 (v0.1.1)
     <news>v0.1.0  (2021-1-26)
       - initial release</news>
+    <assets>
+      <icon>icon.png</icon>
+    </assets>
   </extension>
 </addon>

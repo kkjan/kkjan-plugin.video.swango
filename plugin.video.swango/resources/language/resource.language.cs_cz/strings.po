@@ -39,6 +39,9 @@ msgctxt "#30702"
 msgid "Playlist and EPG XML successfully updated"
 msgstr "Playlist a EPG XML boli úspešne aktualizované."
 
+msgctxt "#30703"
+msgid "Channels and EPG updating started"
+msgstr "Začala aktualizáce kanálú a EPG"
 
 msgctxt "#30030"
 msgid "device_type_code"
@@ -77,44 +80,107 @@ msgid "generate_epg"
 msgstr "Generovat EPG xml soubor"
 
 msgctxt "#30039"
-msgid "epgdays"
-msgstr "Počet dnú pro generovaní EPG xml souboru"
+msgid "epgdays.past"
+msgstr "Minulé dni pro generovaní EPG xml souboru"
 
 msgctxt "#30040"
+msgid "epgdays.future"
+msgstr "Budúce dni pro generovaní EPG xml souboru"
+
+msgctxt "#30041"
 msgid "epgpath"
 msgstr "Adresár EPG XML souboru"
 
-msgctxt "#30041"
+msgctxt "#30042"
 msgid "epgfile"
 msgstr "Názov EPG XML souboru"
 
-msgctxt "#30042"
+msgctxt "#30043"
 msgid "lang"
 msgstr "Jazyk pro EPG a playlist"
 
+msgctxt "#30050"
+msgid "update_interval"
+msgstr "Interval aktualizace"
+
+msgctxt "#30051"
+msgid "update_now"
+msgstr "Aktualizovat teraz"
+
+
+msgctxt "#30052"
+msgid "IPTVMinstall"
+msgstr "Instalace IPTV manažéra"
+
+msgctxt "#30053"
+msgid "IPTVMenable"
+msgstr "Povolení integrácie IPTV manažéra"
+
+msgctxt "#30054"
+msgid "IPTVMsettings"
+msgstr "Nastavení IPTV manažéra…"
+
+msgctxt "#30055"
+msgid "IPTVSimplerestart"
+msgstr "Reštartovaní IPTV Simple po aktualizaci kanálov a EPG"
+
+
+msgctxt "#30056"
+msgid "IPTVSimplesettings"
+msgstr "Nastavení IPTV Simple"
+
 msgctxt "#30060"
-msgid "live"
-msgstr "Živé vysílání"
+msgid "live_tv"
+msgstr "Živé vysílání -TV"
 
 msgctxt "#30061"
+msgid "live_radio"
+msgstr "Živé vysílání -Rádiá"
+
+msgctxt "#30062"
 msgid "archive"
 msgstr "Archív"
 
-msgctxt "#30062"
+msgctxt "#30063"
 msgid "search"
 msgstr "Hledat"
 
-msgctxt "#30063"
+msgctxt "#30064"
 msgid "usr_pwd_empty"
 msgstr "Treba nastaviť meno a heslo pro SwanGO v nastaveních pluginu. Taktéž je možné nastavit už existujúci token zařízení. Ak se nenastaví, plugin se pokúsí spárovať se službou SwanGO"
 
-msgctxt "#30064"
+msgctxt "#30065"
 msgid "tokenempty"
 msgstr "Device token není nastaven"
 
-msgctxt "#30065"
+msgctxt "#30066"
 msgid "next:"
 msgstr "Nasleduje:"
+
+msgctxt "#30067"
+msgid "SWAN Go: Updating Channels and EPG"
+msgstr "SWAN Go: Aktualizace kanálú a EPG"
+
+msgctxt "#30068"
+msgid "Download data from SWAN GO"
+msgstr "Stahování dat"
+
+msgctxt "#30069"
+msgid "Generate playlist"
+msgstr "Generov8n9 playlistu:"
+
+msgctxt "#30070"
+msgid "Generate EPG"
+msgstr "Generov8n9 EPG:"
+
+msgctxt "#30071"
+msgid "Update IPTV simple"
+msgstr "Aktualizace IPTV simple"
+
+msgctxt "#30072"
+msgid "Finished"
+msgstr "Konec aktualzace kanálú a EPG"
+
 
 msgctxt "#32001"
 msgid "Main"
@@ -124,4 +190,10 @@ msgctxt "#32002"
 msgid "Playlist and EPG"
 msgstr "Playlist a EPG"
 
+msgctxt "#32003"
+msgid "Update options"
+msgstr "Aktualizace"
 
+msgctxt "#32004"
+msgid "Integration"
+msgstr "Integrace"
