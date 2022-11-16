@@ -8,7 +8,7 @@ import resources.lib.logger as logger
 import xbmc
 import xbmcaddon
 from resources.lib.functions import *
-import xbmcgui
+
 
 
 class swangoMonitor(xbmc.Monitor):
@@ -57,29 +57,35 @@ class swangoMonitor(xbmc.Monitor):
             _playlistpath_ = os.path.join(self._addon.getSetting("playlistpath"),self._addon.getSetting("playlistfile"))
             _datapath_ = xbmcvfs.translatePath(self._addon.getAddonInfo('profile')) 
             _epg_lang_ = self._addon.getSetting("epg_lang")
-           
+            pDialog=None
             _swango_=swango.SWANGO(username=_username_, password=_password_,device_token=_device_token_,device_type_code=_device_type_code_,model=_device_model_,name=_device_name_,serial_number=_device_serial_number_,datapath=_datapath_,epg_lang=_epg_lang_)
             
             if _swango_.logdevicestartup() ==True:
                 pDialog = progressdialogBG.progressdialogBG(self._addon.getLocalizedString(30067),self._addon.getLocalizedString(30068))
-                _swango_.progress = pDialog
-                pDialog.setpercentrange(0,15)
+                if pDialog:
+                    _swango_.progress = pDialog
+                    pDialog.setpercentrange(0,15)
                 #_swango_.save_swango_jsons(hourspast=_epghourspast_,hoursfuture=_epghourssfuture_)
                 if _generate_playlist:
-                    pDialog.setpercentrange(15,40)
-                    pDialog.setpozition(0,message=self._addon.getLocalizedString(30069))
+                    if pDialog:
+                        pDialog.setpercentrange(15,40)
+                        pDialog.setpozition(0,message=self._addon.getLocalizedString(30069))
                     _swango_.generateplaylist(playlistpath=_playlistpath_)
                 if _generate_epg:
-                    pDialog.setpercentrange(40,70)
-                    pDialog.setpozition(0,message=self._addon.getLocalizedString(30070))
+                    if pDialog:
+                        pDialog.setpercentrange(40,70)
+                        pDialog.setpozition(0,message=self._addon.getLocalizedString(30070))
                     _swango_.generateepg(epgpath=_epgpath_,hourspast=_epghourspast_,hoursfuture=_epghourssfuture_)
                 if self._iptv_simple_restart_ and(_generate_epg or _generate_playlist):
-                    pDialog.setpercentrange(70,100)
-                    pDialog.setpozition(0,message=self._addon.getLocalizedString(30071))
+                    if pDialog:
+                        pDialog.setpercentrange(70,100)
+                        pDialog.setpozition(0,message=self._addon.getLocalizedString(30071))
                     self._iptvsimple.iptv_simple_restart() 
                 result=1
-                pDialog.setpozition(100, message=self._addon.getLocalizedString(30072))
-               
+                if pDialog:
+                    pDialog.setpozition(100, message=self._addon.getLocalizedString(30072))
+                    pDialog.close()
+
             else:
                 logDbg('Pairing device:')
                 _swango_.device_token=_swango_.pairingdevice()

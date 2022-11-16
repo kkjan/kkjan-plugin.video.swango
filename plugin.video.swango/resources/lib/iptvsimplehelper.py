@@ -1,9 +1,7 @@
 import json
-from sys import platform
 import time
 from resources.lib.logger import *
-import time
-import time
+
 
 class IPTVSimple:
     def __init__(self):
@@ -19,11 +17,12 @@ class IPTVSimple:
             logDbg("IPTVSimple restart postpone")
         else:
             logDbg("IPTVSimple restart start")
-            json_query = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "Addons.SetAddonEnabled", "params": {"addonid": "pvr.iptvsimple", "enabled":false}, "id": 1} ')
-            json_query = json.loads(json_query)
-            time.sleep(5)
-            json_query = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "Addons.SetAddonEnabled", "params": {"addonid": "pvr.iptvsimple", "enabled":true}, "id": 1} ')
-            json_query = json.loads(json_query)
+            if xbmc.getCondVisibility("System.AddonIsEnabled('pvr.iptvsimple')"):
+                json_query = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "Addons.SetAddonEnabled", "params": {"addonid": "pvr.iptvsimple", "enabled":false}, "id": 1} ')
+                json_query = json.loads(json_query)
+                time.sleep(5)
+                json_query = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "Addons.SetAddonEnabled", "params": {"addonid": "pvr.iptvsimple", "enabled":true}, "id": 1} ')
+                json_query = json.loads(json_query)
             logDbg("IPTVSimple restart finished")
             self.need_restart=False
             return self.need_restart
